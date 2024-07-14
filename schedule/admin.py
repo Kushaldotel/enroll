@@ -4,7 +4,7 @@ from django.contrib import admin
 from .models import Schedule
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
-from subject.models import PotentialSubject, SubjectToTaught, AllocatedSubject
+from subject.models import PotentialSubject, SubjectToTaught, AllocatedSubject, NewPotentialSubject
 from .admin_actions import calculate_subjects_to_taught
 from django.shortcuts import redirect
 
@@ -22,9 +22,9 @@ class ScheduleAdmin(ModelAdmin, ImportExportModelAdmin):
     )
     readonly_fields = ('created_at', 'updated_at')
 
-class PotentialSubjectAdmin(ModelAdmin,ImportExportModelAdmin):
-    list_display = ('subject', 'remaining_students')
-    search_fields = ('subject__name',)
+# class PotentialSubjectAdmin(ModelAdmin,ImportExportModelAdmin):
+#     list_display = ('subject', 'remaining_students')
+#     search_fields = ('subject__name',)
 
 
 class SubjectToTaughtAdmin(ModelAdmin,ImportExportModelAdmin):
@@ -54,10 +54,17 @@ class AllocatedSubjectAdmin(ModelAdmin, ImportExportModelAdmin):
         return ', '.join(obj.allocated_subjects)
     allocated_subjects_display.short_description = 'Allocated Subjects'
 
+
+class NewPotentialSubjectAdmin(ModelAdmin,ImportExportModelAdmin):
+    list_display = ('subject', 'remaining_students')
+    search_fields = ('subject__name',)
+
+admin.site.register(NewPotentialSubject, NewPotentialSubjectAdmin)
+
 admin.site.register(AllocatedSubject, AllocatedSubjectAdmin)
 
 admin.site.register(SubjectToTaught, SubjectToTaughtAdmin)
 
-admin.site.register(PotentialSubject, PotentialSubjectAdmin)
+# admin.site.register(PotentialSubject, PotentialSubjectAdmin)
 
 admin.site.register(Schedule, ScheduleAdmin)

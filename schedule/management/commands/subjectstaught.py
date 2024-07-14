@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand
 from student.models import Student
-from subject.models import Subject, SubjectToTaught, AllocatedSubject
+from subject.models import Subject, SubjectToTaught, AllocatedSubject, NewPotentialSubject
 from student.models import CompletedSubject
 from collections import defaultdict
 import json
@@ -13,9 +13,10 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         subjects_to_allocate = 4  # Explicitly define the number of subjects to allocate
 
-        # Clear existing SubjectToTaught and AllocatedSubject data
+        # Clear existing SubjectToTaught, AllocatedSubject, and NewPotentialSubject data
         SubjectToTaught.objects.all().delete()
         AllocatedSubject.objects.all().delete()
+        NewPotentialSubject.objects.all().delete()
 
         # Get all students and subjects
         all_students = Student.objects.all()
@@ -55,6 +56,21 @@ class Command(BaseCommand):
                 student=student,
                 allocated_subjects=subjects
             )
+
+        # Calculate and store remaining students for each subject to be taught
+        for subject_name in subjects_to_be_taught:
+            subject = Subject.objects.get(name=subject_name)
+            remaining_students = []
+            for student in all_students:
+                completed_subjects = CompletedSubject.objects.filter(student=student).values_list('subject', flat=True)
+                if subject.id not in completed_subjects:
+                    remaining_students.append(student.first_name)
+            if remaining_students:
+                NewPotentialSubject.objects.create(
+                    subject=subject,
+                    remaining_students=len(remaining_students),
+                    remaining_student_names=remaining_students
+                )
 
         self.stdout.write(self.style.SUCCESS(f'Successfully calculated and stored subjects to be taught: {subjects_to_be_taught}'))
         self.stdout.write(self.style.SUCCESS(f'Student Allocations: {json.dumps(student_allocations, indent=2)}'))
