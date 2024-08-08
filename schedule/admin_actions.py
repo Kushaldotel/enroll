@@ -7,3 +7,10 @@ def calculate_subjects_to_taught(modeladmin, request, queryset):
         messages.success(request, "Successfully calculated and stored subjects to be taught.")
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
+
+def calculate_optimalsubjects(modeladmin, request, queryset):
+    try:
+        call_command('optimalsubjects')  # No arguments needed now
+        messages.success(request, "Successfully calculated and stored subjects to be taught.")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")

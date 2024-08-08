@@ -5,7 +5,7 @@ from .models import Schedule
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
 from subject.models import PotentialSubject, SubjectToTaught, AllocatedSubject, NewPotentialSubject
-from .admin_actions import calculate_subjects_to_taught
+from .admin_actions import calculate_subjects_to_taught, calculate_optimalsubjects
 from django.shortcuts import redirect
 
 class ScheduleAdmin(ModelAdmin, ImportExportModelAdmin):
@@ -31,14 +31,15 @@ class SubjectToTaughtAdmin(ModelAdmin,ImportExportModelAdmin):
     list_display = ('number_of_subjects', 'subject_names_display')
     search_fields = ('subject_names',)
 
-    actions = [calculate_subjects_to_taught]
+    # actions = [calculate_subjects_to_taught]
+    actions = [calculate_optimalsubjects]
 
     def subject_names_display(self, obj):
         return ', '.join(obj.subject_names)
     subject_names_display.short_description = 'Subjects'
 
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] == 'calculate_subjects_to_taught':
+        if 'action' in request.POST and request.POST['action'] == 'calculate_optimalsubjects':
             return self.calculate_subjects(request)
         return super().changelist_view(request, extra_context=extra_context)
 
