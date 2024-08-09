@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from student.models import Student
 from subject.models import Subject, SubjectToTaught, AllocatedSubject, NewPotentialSubject
 from student.models import CompletedSubject
-from collections import defaultdict
+from collections import defaultdict, Counter
 import json
 
 class Command(BaseCommand):
@@ -22,50 +22,53 @@ class Command(BaseCommand):
         all_students = Student.objects.all()
         all_subjects = Subject.objects.all()
 
-        # Calculate remaining subjects for each student
+        # Step 1: Calculate remaining subjects for each student
         student_subjects = {}
         for student in all_students:
             completed_subjects = CompletedSubject.objects.filter(student=student).values_list('subject', flat=True)
-            remaining_subjects = all_subjects.exclude(id__in=completed_subjects)
-            student_subjects[student.id] = sorted(remaining_subjects.values_list('name', flat=True))
+            remaining_subjects = list(all_subjects.exclude(id__in=completed_subjects).values_list('name', flat=True))
+            student_subjects[student.id] = remaining_subjects
 
-        # Step 1: Find common subjects among all students
-        if student_subjects:
-            common_subjects = set(student_subjects[next(iter(student_subjects))])
-            for subjects in student_subjects.values():
-                common_subjects &= set(subjects)
-            common_subjects = sorted(common_subjects)
-        else:
-            common_subjects = []
+        # Step 2: Identify common subjects among all students
+        common_subjects = set(student_subjects[next(iter(student_subjects))])
+        for subjects in student_subjects.values():
+            common_subjects &= set(subjects)
+        common_subjects = sorted(common_subjects)
 
-        # Step 2: Allocate common subjects to each student
-        subjects_to_be_taught = common_subjects[:]
+        # Step 3: Count how many students need each subject
+        subject_counter = Counter([subject for subjects in student_subjects.values() for subject in subjects])
+
+        # Step 4: Sort subjects by the number of students needing them (highest to lowest)
+        sorted_subjects = sorted(subject_counter.keys(), key=lambda x: subject_counter[x], reverse=True)
+
+        # Step 5: Allocate subjects to each student
+        subjects_to_be_taught = set()
         student_allocations = defaultdict(list)
-        remaining_subjects_pool = set()
 
         for student_id, remaining_subjects in student_subjects.items():
-            allocation = [subject for subject in common_subjects if subject in remaining_subjects][:subjects_to_allocate]
-            remaining_subjects_pool.update(set(remaining_subjects) - set(allocation))
+            allocation = []
+
+            # Allocate common subjects first
+            for subject in common_subjects:
+                if subject in remaining_subjects and len(allocation) < subjects_to_allocate:
+                    allocation.append(subject)
+                    subjects_to_be_taught.add(subject)
+
+            # Allocate other subjects based on popularity
+            for subject in sorted_subjects:
+                if len(allocation) < subjects_to_allocate and subject in remaining_subjects:
+                    allocation.append(subject)
+                    subjects_to_be_taught.add(subject)
+
             student_allocations[student_id] = allocation
 
-        # Step 3: Fill remaining allocations to ensure 4 subjects per student
-        for student_id, allocation in student_allocations.items():
-            remaining_subjects = [subject for subject in student_subjects[student_id] if subject not in allocation]
-            while len(allocation) < subjects_to_allocate and remaining_subjects:
-                subject_to_add = remaining_subjects.pop(0)
-                if subject_to_add not in allocation:
-                    allocation.append(subject_to_add)
-                    if subject_to_add not in subjects_to_be_taught:
-                        subjects_to_be_taught.append(subject_to_add)
-            student_allocations[student_id] = allocation
-
-        # Step 4: Store the subjects to be taught by the college
+        # Step 6: Store the subjects to be taught by the college
         SubjectToTaught.objects.create(
-            subject_names=subjects_to_be_taught,
+            subject_names=list(subjects_to_be_taught),
             number_of_subjects=len(subjects_to_be_taught)
         )
 
-        # Step 5: Store the allocated subjects for each student
+        # Step 7: Store the allocated subjects for each student
         for student_id, subjects in student_allocations.items():
             student = Student.objects.get(id=student_id)
             AllocatedSubject.objects.create(
@@ -73,7 +76,7 @@ class Command(BaseCommand):
                 allocated_subjects=subjects
             )
 
-        # Step 6: Calculate and store remaining students for each subject to be taught
+        # Step 8: Calculate and store remaining students for each subject to be taught
         for subject_name in subjects_to_be_taught:
             subject = Subject.objects.get(name=subject_name)
             remaining_students = []
@@ -88,7 +91,5 @@ class Command(BaseCommand):
                     remaining_student_names=remaining_students
                 )
 
-        self.stdout.write(self.style.SUCCESS(f'Successfully calculated and stored subjects to be taught: {subjects_to_be_taught}'))
+        self.stdout.write(self.style.SUCCESS(f'Successfully calculated and stored subjects to be taught: {list(subjects_to_be_taught)}'))
         self.stdout.write(self.style.SUCCESS(f'Student Allocations: {json.dumps(student_allocations, indent=2)}'))
-
-# Running this command will now consistently allocate subjects and calculate the optimal solution based on your requirements.

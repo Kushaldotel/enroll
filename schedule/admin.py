@@ -40,12 +40,16 @@ class SubjectToTaughtAdmin(ModelAdmin,ImportExportModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         if 'action' in request.POST and request.POST['action'] == 'calculate_optimalsubjects':
-            return self.calculate_subjects(request)
+            return self.calculate_optimalsubjects(request)
         return super().changelist_view(request, extra_context=extra_context)
 
-    def calculate_subjects(self, request):
-        calculate_subjects_to_taught(self, request, None)
+    def calculate_optimalsubjects(self, request):
+        calculate_optimalsubjects(self, request, None)
         return redirect('..')  # Redirect back to the changelist view
+
+    # def calculate_subjects(self, request):
+    #     calculate_subjects_to_taught(self, request, None)
+    #     return redirect('..')  # Redirect back to the changelist view
 
 class AllocatedSubjectAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ('student', 'allocated_subjects_display')
