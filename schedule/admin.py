@@ -5,7 +5,7 @@ from .models import Schedule
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
 from subject.models import PotentialSubject, SubjectToTaught, AllocatedSubject, NewPotentialSubject
-from .admin_actions import calculate_subjects_to_taught, calculate_optimalsubjects
+from .admin_actions import calculate_subjects_to_taught, calculate_optimalsubjects,calculate_potentialsubjects
 from django.shortcuts import redirect
 
 class ScheduleAdmin(ModelAdmin, ImportExportModelAdmin):
@@ -32,24 +32,29 @@ class SubjectToTaughtAdmin(ModelAdmin,ImportExportModelAdmin):
     search_fields = ('subject_names',)
 
     # actions = [calculate_subjects_to_taught]
-    actions = [calculate_optimalsubjects]
+    # actions = [calculate_optimalsubjects]
+    actions = [calculate_potentialsubjects]
 
     def subject_names_display(self, obj):
         return ', '.join(obj.subject_names)
     subject_names_display.short_description = 'Subjects'
 
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] == 'calculate_optimalsubjects':
-            return self.calculate_optimalsubjects(request)
+        if 'action' in request.POST and request.POST['action'] == 'calculate_potentialsubjects':
+            return self.calculate_potentialsubjects(request)
         return super().changelist_view(request, extra_context=extra_context)
 
-    def calculate_optimalsubjects(self, request):
-        calculate_optimalsubjects(self, request, None)
-        return redirect('..')  # Redirect back to the changelist view
+    # def calculate_optimalsubjects(self, request):
+    #     calculate_optimalsubjects(self, request, None)
+    #     return redirect('..')  # Redirect back to the changelist view
 
     # def calculate_subjects(self, request):
     #     calculate_subjects_to_taught(self, request, None)
     #     return redirect('..')  # Redirect back to the changelist view
+
+    def calculate_potentialsubjects(self, request):
+        calculate_potentialsubjects(self, request, None)
+        return redirect('..')
 
 class AllocatedSubjectAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ('student', 'allocated_subjects_display')
