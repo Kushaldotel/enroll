@@ -1,22 +1,22 @@
-# import re
-# from django.db.models.signals import pre_save
-# from django.dispatch import receiver
-# from django.contrib.auth.models import User, Group
-# from .models import Student
+from .models import UploadStudent, CompletedSubject, Student
+from subject.models import Subject
 
-# @receiver(pre_save, sender=Student)
-# def create_user_for_student(sender, instance, **kwargs):
-#     if not instance.user_id:  # Check if user_id is not set (user object not created)
-#         # Create the User object
-#         user = User.objects.create_user(
-#             username=instance.unique_username,
-#             password=instance.dob.strftime('%Y-%m-%d'),
-#             email=instance.email,
-#             first_name=instance.first_name,
-#             last_name=instance.last_name
-#         )
-#         instance.user = user  # Assign the created user to the student instance
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-#         # Add the User to the 'student' group
-#         student_group, created = Group.objects.get_or_create(name='student')
-#         user.groups.add(student_group)
+@receiver(post_save, sender=Student)
+def populate_completed_subjects(sender, instance, created, **kwargs):
+    if created and instance.completed_subjects:
+        for subject_id in instance.completed_subjects:
+            try:
+                subject = Subject.objects.get(id=subject_id)
+                CompletedSubject.objects.get_or_create(
+                    student=instance,
+                    subject=subject,
+                    defaults={'completion_date': None}
+                )
+            except Subject.DoesNotExist:
+                # Log or handle the case where the subject ID does not exist
+                pass
+
+
