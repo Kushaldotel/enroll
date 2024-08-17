@@ -1,11 +1,11 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 class Subject(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,null=True, blank=True)
     code = models.CharField(max_length=10, unique=True)
     description = models.TextField(blank=True, null=True)
-    credits = models.IntegerField()
-    department = models.CharField(max_length=255)
+    credits = models.IntegerField(null=True, blank=True)
+    department = models.CharField(max_length=255, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
