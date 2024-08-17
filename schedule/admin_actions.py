@@ -17,7 +17,8 @@ def calculate_optimalsubjects(modeladmin, request, queryset):
 
 def calculate_potentialsubjects(modeladmin, request, queryset):
     try:
-        call_command('optitest2')  # No arguments needed now
+        call_command('optitest3')  # No arguments needed now
+        # call_command('optitest2')  # No arguments needed now
         messages.success(request, "Successfully calculated and stored subjects to be taught.")
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
