@@ -25,7 +25,7 @@ class Student(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.unique_username}"
 
 class UploadStudent(models.Model):
     first_name = models.CharField(max_length=100)
@@ -56,7 +56,7 @@ class CompletedSubject(models.Model):
     completion_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.student} completed {self.subject} on {self.completion_date}"
+        return f"{self.student.unique_username} completed {self.subject} on {self.subject.code}"
 
     class Meta:
         unique_together = ('student', 'subject')

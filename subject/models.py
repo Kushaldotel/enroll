@@ -11,7 +11,7 @@ class Subject(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.code
 
 class PotentialSubject(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
@@ -26,8 +26,11 @@ class SubjectToTaught(models.Model):
     subject_names = ArrayField(models.CharField(max_length=255), default=list)
     number_of_subjects = models.IntegerField()
 
+    # def __str__(self):
+    #     return f"Subjects to be taught: {', '.join(self.subject_names)}"
+
     def __str__(self):
-        return f"Subjects to be taught: {', '.join(self.subject_names)}"
+        return f"Subjects to be taught: {self.number_of_subjects}"
 
 class AllocatedSubject(models.Model):
     student = models.ForeignKey('student.Student', on_delete=models.CASCADE)

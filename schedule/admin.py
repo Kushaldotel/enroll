@@ -28,8 +28,9 @@ class ScheduleAdmin(ModelAdmin, ImportExportModelAdmin):
 
 
 class SubjectToTaughtAdmin(ModelAdmin,ImportExportModelAdmin):
-    list_display = ('number_of_subjects', 'subject_names_display')
-    search_fields = ('subject_names',)
+    list_display = ('number_of_subjects',)
+    # list_display = ('number_of_subjects', 'subject_names_display')
+    # search_fields = ('subject_names',)
 
     # actions = [calculate_subjects_to_taught]
     # actions = [calculate_optimalsubjects]
