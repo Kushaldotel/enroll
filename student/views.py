@@ -20,7 +20,7 @@ def upload_csv(request):
                 for subject_code in df.columns[1:]:
                     status = row[subject_code]
                     subject, _ = Subject.objects.get_or_create(code=subject_code)
-                    if status in ['P', 'C', 'E']:
+                    if status in ['P', 'C', 'E', 'CR', 'CPL']:
                         CompletedSubject.objects.get_or_create(student=student, subject=subject)
 
             return redirect('upload_success')
